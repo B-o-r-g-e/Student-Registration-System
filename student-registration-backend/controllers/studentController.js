@@ -16,6 +16,8 @@ export const registerStudent = async (req, res) => {
         session_id,
     } = req.body;
 
+    console.log("Request body:", req.body);
+
     try {
         const result = await pool.query(
             `INSERT INTO students (
@@ -29,6 +31,9 @@ export const registerStudent = async (req, res) => {
             department_id, gender, date_of_birth, phone_number, level, 
             semester, session_id,]
         );
+
+        console.log("Insert result:", result.rows[0]); // 🔍 check what's returned
+
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error registering student:', error.message);
