@@ -112,3 +112,66 @@ export const updateStudent = async (req, res) => {
         res.status(500).json({ message: "Server error"})
     }
 }
+
+export const updateStudentPartially = async (req, res) => {
+    const { matric_number} = req.params;
+    const fields = req.body
+
+    if (Object.keys(fields).length === 0) {
+        return res.status(400).json({ error: 'No fields provided for update' });
+    }
+
+    const setClauses = [];
+    const values = [];
+
+    let index = 1
+    for (let key in fields) {
+        setClauses.push(`${key} = $${index}`)
+        values.push(fields[key])
+        index++
+    }
+
+    values.push(matric_number);
+
+    const query = `
+        UPDATE students 
+        SET ${setClauses.join(', ')}
+        WHERE matric_number = $${index}
+        RETURNING *
+    `;
+
+    try {
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+
+        res.status(200).json({message: 'Student updated', student: result.rows[0]});
+    } catch (error) {
+        console.error('Error updating student:', error.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+export const deleteStudent = async (req, res) => {
+    const { matric_number } = req.params;
+
+    try {
+        const result = await pool.query(`
+            DELETE FROM students 
+            WHERE matric_number = $1
+            RETURNING *`,
+            [matric_number]
+        )
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+
+        res.status(200).json({ message: 'Student deleted' });
+    } catch (e) {
+        console.error('Error deleting student:', e.message);
+        res.status(500).json({ error: 'Failed to delete student' });
+    }
+}
