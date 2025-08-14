@@ -269,8 +269,11 @@ export const getAllRegisteredCoursesByStudent = async (req, res) => {
 
     try {
         const result = await pool.query(`
-        SELECT *
-        FROM registrations
+        SELECT r.id, s.matric_number AS matric_number, c.course_code AS course_code, r.registration_date, r.status, a.name AS academic_session
+        FROM registrations r
+        JOIN students s ON s.id = r.student_id
+        JOIN courses c ON c.id = r.course_id
+        JOIN academic_sessions a ON a.id = r.session_id
         WHERE student_id = $1`,
         [student_id])
 
