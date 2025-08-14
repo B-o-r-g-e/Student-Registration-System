@@ -244,9 +244,14 @@ export const registerMultipleCourses = async (req, res) => {
         );
 
         const logMessage = await pool.query(`
-        SELECT * 
-        FROM registration_logs
-        WHERE student_id = $1 AND session_id = $2
+        SELECT r.id, s.matric_number AS matric_number,
+               get_student_name($1), c.course_code AS course_code,
+               a.name AS academic_session, r.status, r.message, r.log_time
+        FROM registration_logs r
+        JOIN students s ON s.id = r.student_id
+        JOIN courses c ON c.id = r.course_id
+        JOIN academic_sessions a ON a.id = r.session_id
+        WHERE student_id = $1 AND r.session_id = $2
         ORDER BY log_time`,
         [student_id, session_id])
 
