@@ -73,7 +73,6 @@ export const getStudentById = async (req, res) => {
     }
 };
 
-
 export const updateStudent = async (req, res) => {
     const { matric_number } = req.params
     const {
