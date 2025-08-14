@@ -268,6 +268,11 @@ export const getAllRegisteredCoursesByStudent = async (req, res) => {
     }
 
     try {
+        const studentFullName = await pool.query(`
+        SELECT * 
+        FROM get_student_name($1)`,
+        [student_id])
+
         const result = await pool.query(`
         SELECT r.id, s.matric_number AS matric_number, c.course_code AS course_code, r.registration_date, r.status, a.name AS academic_session
         FROM registrations r
@@ -281,7 +286,11 @@ export const getAllRegisteredCoursesByStudent = async (req, res) => {
             return res.status(404).json({error: 'No courses registered by student'})
         }
 
-        res.status(200).json(result.rows);
+        res.status(200).json({
+            student_name: studentFullName.rows[0].get_student_name,
+            registrations: result.rows
+        });
+
     } catch (e) {
         console.error('Error fetching registered courses by student:', e.message);
         res.status(500).json({ error: 'Failed to fetch registered courses by student'  });
