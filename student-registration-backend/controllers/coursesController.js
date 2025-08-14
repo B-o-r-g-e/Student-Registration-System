@@ -308,9 +308,18 @@ export const unregisterCourse = async (req, res) => {
 
     try {
         const result = await pool.query(`
-        DELETE FROM registrations
-        WHERE student_id = $1 AND course_id = $2
-        RETURNING *`,
+        WITH deleted AS(
+            DELETE FROM registrations
+                WHERE student_id = $1 AND course_id = $2
+                RETURNING *
+        )
+        SELECT d.id, s.matric_number AS matric_number, get_student_name($1), c.course_code AS Course_code,
+               d.registration_date, d.status, a.name AS academic_session
+        FROM deleted d 
+        JOIN students s ON s.id = d.student_id
+        JOIN courses c ON c.id = d.course_id
+        JOIN academic_sessions a ON a.id = d.session_id
+        `,
         [student_id, course_ids])
 
         if (result.rows.length === 0) {
