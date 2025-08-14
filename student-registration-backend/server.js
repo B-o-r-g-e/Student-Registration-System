@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import studentsRoutes from "./routes/studentsRoutes.js";
+import facultyRoutes from "./routes/facultiesRoutes.js";
+import departmentRoutes from "./routes/departmentsRoutes.js";
+import coursesRoutes from "./routes/coursesRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -14,6 +17,9 @@ app.get("/", (req, res) => {
 })
 
 app.use('/api/students', studentsRoutes)
+app.use('/api/faculties', facultyRoutes)
+app.use('/api/departments', departmentRoutes)
+app.use('/api/courses', coursesRoutes)
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
