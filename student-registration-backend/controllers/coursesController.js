@@ -51,7 +51,6 @@ export const getCoursesByDepartment = async (req, res) => {
         }
 
         const department_id = departmentResult.rows[0].id;
-        console.log('Department ID:', department_id);
 
         const result = await pool.query(`
             SELECT c.id, c.course_code, c.course_name, d.name AS department_name, c.level, c.semester, c.units
@@ -101,7 +100,7 @@ export const getCoursesByLevelSemesterAndDepartment = async (req, res) => {
         }
 
         res.status(200).json(result.rows);
-    } catch (e) {
+    } catch (error) {
         console.error('Error fetching courses by department:', error.message);
         res.status(500).json({ error: 'Failed to fetch courses' });
     }
@@ -168,9 +167,6 @@ export const updateCourse = async (req, res) => {
     const { course_code } = req.params;
     const fields = req.body;
 
-    console.log('fields', fields);
-    console.log('course_code', course_code);
-
     if (Object.keys(fields).length === 0) {
         return res.status(400).json({message: "No fields provided for update"})
     }
@@ -188,8 +184,6 @@ export const updateCourse = async (req, res) => {
 
         fields.department_id = departmentResult.rows[0].id;
         delete fields.department
-
-        console.log('fields after faculty check', fields)
     }
 
     const setClauses = []
@@ -206,9 +200,6 @@ export const updateCourse = async (req, res) => {
 
     values.push(course_code);
 
-    console.log('setClause', setClauses);
-    console.log('values', values);
-
     const whereIndex = index
     const query = `UPDATE courses
     SET ${setClauses.join(', ')}
@@ -224,7 +215,7 @@ export const updateCourse = async (req, res) => {
         }
 
         res.status(200).json(result.rows);
-    } catch (e) {
+    } catch (error) {
         console.error('Error fetching courses by department:', error.message);
         res.status(500).json({ error: 'Failed to fetch courses' });
     }
@@ -309,7 +300,7 @@ export const getAllRegisteredCoursesByStudent = async (req, res) => {
 
 export const unregisterCourse = async (req, res) => {
     const { student_id } = req.params;
-    const { course_ids } = req.body;
+    const { course_id } = req.body;
 
     try {
         const result = await pool.query(`
@@ -325,7 +316,7 @@ export const unregisterCourse = async (req, res) => {
         JOIN courses c ON c.id = d.course_id
         JOIN academic_sessions a ON a.id = d.session_id
         `,
-        [student_id, course_ids])
+        [student_id, course_id])
 
         if (result.rows.length === 0) {
             return res.status(404).json({error: 'Course not registered by student'})

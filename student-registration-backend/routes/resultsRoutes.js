@@ -3,7 +3,7 @@ import {getResultByStudentId, registerNewResult} from "../controllers/resultsCon
 
 const router = express.Router()
 
-router.post('/register', registerNewResult)
 router.get('/:matric_number', getResultByStudentId)
+router.post('/register', registerNewResult)
 
 export default router

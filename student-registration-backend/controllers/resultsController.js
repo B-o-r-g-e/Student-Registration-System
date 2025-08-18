@@ -12,14 +12,11 @@ export const registerNewResult = async(req, res) => {
         WHERE matric_number ILIKE $1`,
         [matric_number])
 
-        console.log("matric number", matric_number)
-
         if (getStudentId.rows.length === 0) {
             return res.status(404).send(`Student with the matric number ${matric_number} not found`)
         }
 
         const student_id = getStudentId.rows[0].id;
-        console.log("getStudent", student_id)
 
         //Get course code
         const getCourseId = await pool.query(`
@@ -69,15 +66,12 @@ export const getResultByStudentId = async(req, res) => {
         FROM students
         WHERE matric_number ILIKE $1`,
         [matric_number]);
-        console.log(matric_number)
 
         if (getStudent.rows.length === 0) {
             return res.status(404).json(`student with the matric number ${matric_number} not found`)
         }
 
         const studentId = getStudent.rows[0].id;
-
-        console.log(studentId)
 
         const result = await pool.query(`
         SELECT r.id, s.matric_number, c.course_code, r.score, r.grade, r.semester, r.level, a.name AS academic_session, r.grade_point, r.quality_point
