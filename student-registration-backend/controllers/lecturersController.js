@@ -48,3 +48,39 @@ export const getLecturerByEmail = async (req, res) => {
         return res.status(500).json('Failed to get lecturers', e)
     }
 }
+
+export const updateLecturer = async (req, res) => {
+    const {id} = req.params
+    const fields = req.body
+    
+    const setClauses = []
+    const values = []
+
+    let index = 1
+    for (let key in fields) {
+        setClauses.push(`${key} = $${index}`)
+        values.push(fields[key])
+        index++
+    }
+
+    values.push(id)
+    const whereIndex = index
+
+    const query = `UPDATE lecturers
+        SET ${setClauses.join(', ')}
+        WHERE id = $${whereIndex}
+        RETURNING *`
+
+    try {
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json('Lecturer not found')
+        }
+
+        res.status(200).json(result.rows)
+    } catch (e) {
+        console.error('Error updating lecturer', e)
+        return res.status(500).json('Failed to update lecturer', e)
+    }
+}
