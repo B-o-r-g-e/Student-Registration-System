@@ -133,3 +133,76 @@ export const totallyAlterResult = async(req, res) => {
         res.status(500).json({error: "Failed to get result"})
     }
 }
+
+export const partiallyUpdateResult = async (req, res) => {
+    const {id} = req.params;
+    const fields = req.body;
+
+    if (fields.matric_number){
+        const studentResult = await getIds("students", "matric_number", fields.matric_number)
+
+        if (!studentResult) {
+            return res.status(404).json({error: 'Student not found'})
+        }
+
+        fields.student_id = studentResult
+        delete fields.matric_number
+    }
+
+    if (fields.course_code) {
+        const courseResult = await getIds("courses", "course_code", fields.course_code)
+
+        if (!courseResult) {
+            return res.status(404).json({error: 'Course not found'})
+        }
+
+        fields.course_id = courseResult
+        delete fields.course_code
+    }
+
+    if (fields.session_name) {
+        const sessionResult = await getIds("academic_sessions", "name", fields.session_name)
+
+        if (!sessionResult) {
+            return res.status(404).json({error: 'Session not found'})
+        }
+
+        fields.session_id = sessionResult
+        delete fields.session_name
+    }
+
+    const setClauses = []
+    const values = []
+
+    let index = 1
+    for (let key in fields) {
+        setClauses.push(`${key} = $${index}`)
+        values.push(fields[key])
+        index++
+    }
+
+    console.log(setClauses)
+
+    values.push(id)
+    console.log(values)
+
+    const whereIndex = index
+
+    const query = `UPDATE results
+    SET ${setClauses.join(', ')}
+    WHERE id = $${whereIndex}
+    RETURNING *`
+
+    try {
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({error: 'Result not found'})
+        }
+
+        res.status(200).json(result.rows)
+    } catch (e) {
+        console.error("Error fetching result", e)
+        res.status(500).json({error: "Failed to get result"})
+    }
+}
