@@ -1,4 +1,5 @@
 import pool from "../db/index.js";
+import {getIds} from "../utils/getId.js";
 
 export const registerNewResult = async(req, res) => {
     const {matric_number, course_code, score,
@@ -89,6 +90,46 @@ export const getResultByStudentId = async(req, res) => {
         res.status(200).json(result.rows)
     } catch (e) {
         console.error('Error getting result', e)
+        res.status(500).json({error: "Failed to get result"})
+    }
+}
+
+export const totallyAlterResult = async(req, res) => {
+    const {id} = req.params;
+    const {matric_number, course_code, score, semester, level, session} = req.body
+
+    try{
+        const studentId = await getIds("students", "matric_number", matric_number)
+
+        if (!studentId) {
+            return res.status(404).json(`Student with the matric number ${matric_number} not found`)
+        }
+
+        const courseId = await getIds("courses", "course_code", course_code)
+
+        if (!courseId) {
+            return res.status(404).json(`Course with the course code ${course_code} not found`)
+        }
+
+        const sessionId = await getIds("academic_sessions", "name", session)
+        if (!sessionId) {
+            return res.status(404).json(`Session with the course code ${course_code} not found`)
+        }
+
+        const result = await pool.query(`
+        UPDATE results
+        SET student_id = $1, course_id = $2, score = $3, semester = $4, 
+            level = $5, session_id = $6
+            WHERE id = $7
+            RETURNING *`,
+            [studentId, courseId, score, semester, level, sessionId, id])
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({error: 'Result not found'})
+        }
+        res.status(200).json(result.rows[0])
+    } catch (e) {
+        console.error(e.message)
         res.status(500).json({error: "Failed to get result"})
     }
 }
